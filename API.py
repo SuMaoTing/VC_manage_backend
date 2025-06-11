@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pymongo import MongoClient
 from dotenv import load_dotenv
 import os
+import re
 
  # 載入環境變數
 load_dotenv()
@@ -35,7 +36,8 @@ async def login(username: str = Form(...), password: str = Form(...)):
 async def register(username: str = Form(...), password: str = Form(...)):
     if users_collection.find_one({"username": username}):
         raise HTTPException(status_code=400, detail="Username already exists")
-    
+    if not re.match(r"^[a-zA-Z0-9_]{8,20}$", password):
+        raise HTTPException(status_code=400, detail="Invalid password format")
     new_user = {"username": username, "password": password}
     users_collection.insert_one(new_user)
     return {"message": "User registered successfully"}
